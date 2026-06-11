@@ -23,15 +23,31 @@ class ToastEnhancedBackend extends Requirements_Backend
 
         // Script tags for js links
         foreach ($this->getJavascript() as $file => $attributes) {
-            $attributes['src'] = $this->pathForFile($file);
-            $jsRequirements .= HTML::createTag('script', $attributes);
+            // Build html attributes
+            $htmlAttributes = [
+                'type' => isset($attributes['type']) ? $attributes['type'] : "application/javascript",
+                'src' => $this->pathForFile($file),
+            ];
+            if (!empty($attributes['async'])) {
+                $htmlAttributes['async'] = 'async';
+            }
+            if (!empty($attributes['defer'])) {
+                $htmlAttributes['defer'] = 'defer';
+            }
+            if (!empty($attributes['integrity'])) {
+                $htmlAttributes['integrity'] = $attributes['integrity'];
+            }
+            if (!empty($attributes['crossorigin'])) {
+                $htmlAttributes['crossorigin'] = $attributes['crossorigin'];
+            }
+            $jsRequirements .= HTML::createTag('script', $htmlAttributes);
             $jsRequirements .= "\n";
         }
 
         // Add all inline JavaScript *after* including external files they might rely on
         foreach ($this->getCustomScripts() as $key => $script) {
             // Build html attributes
-            $customHtmlAttributes = [];
+            $customHtmlAttributes = ['type' => 'application/javascript'];
             if (isset($this->customScriptAttributes[$key])) {
                 foreach ($this->customScriptAttributes[$key] as $attrKey => $attrValue) {
                     $customHtmlAttributes[$attrKey] = $attrValue;
@@ -54,6 +70,15 @@ class ToastEnhancedBackend extends Requirements_Backend
                 'onload' => "this.onload=null;this.rel='stylesheet'",
                 ...$params,
             ];
+            if (!empty($params['media'])) {
+                $htmlAttributes['media'] = $params['media'];
+            }
+            if (!empty($params['integrity'])) {
+                $htmlAttributes['integrity'] = $params['integrity'];
+            }
+            if (!empty($params['crossorigin'])) {
+                $htmlAttributes['crossorigin'] = $params['crossorigin'];
+            }
             $requirements .= HTML::createTag('link', $htmlAttributes);
             $requirements .= "\n";
         }
