@@ -1,0 +1,7 @@
+# see https://docs.silverstripe.org/en/developer_guides/configuration/configuration/
+---
+Name: injectors
+---
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\View\Requirements_Backend:
+    class: Toast\Injectors\ToastEnhancedBackend
