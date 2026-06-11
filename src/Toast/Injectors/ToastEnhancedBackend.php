@@ -59,13 +59,15 @@ class ToastEnhancedBackend extends Requirements_Backend
 
         // CSS file links
         foreach ($this->getCSS() as $file => $params) {
-            $htmlAttributes = [
+            $htmlAttributes = array_merge(
+            [
                 'rel' => 'preload',
                 'href' => $this->pathForFile($file),
                 'as' => 'style',
                 'onload' => "this.onload=null;this.rel='stylesheet'",
-                ...$params,
-            ];
+                ],
+                $params
+            );
             if (!empty($params['media'])) {
                 $htmlAttributes['media'] = $params['media'];
             }
