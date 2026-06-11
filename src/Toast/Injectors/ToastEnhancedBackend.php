@@ -3,14 +3,23 @@
 namespace Toast\Injectors;
 
 use SilverStripe\View\HTML;
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\View\Requirements_Backend;
 
 class ToastEnhancedBackend extends Requirements_Backend
 {
     public function includeInHTML($content)
     {
+        if (func_num_args() > 1) {
+            Deprecation::notice(
+                '5.0',
+                '$templateFile argument is deprecated. includeInHTML takes a sole $content parameter now.'
+            );
+            $content = func_get_arg(1);
+        }
+
         // Skip if content isn't injectable, or there is nothing to inject
-        $tagsAvailable = preg_match('#</head\b#', $content ?? '');
+        $tagsAvailable = preg_match('#</head\b#', $content);
         $hasFiles = $this->css || $this->javascript || $this->customCSS || $this->customScript || $this->customHeadTags;
         if (!$tagsAvailable || !$hasFiles) {
             return $content;
@@ -23,23 +32,26 @@ class ToastEnhancedBackend extends Requirements_Backend
 
         // Script tags for js links
         foreach ($this->getJavascript() as $file => $attributes) {
-            $attributes['src'] = $this->pathForFile($file);
-            $jsRequirements .= HTML::createTag('script', $attributes);
+            // Build html attributes
+            $htmlAttributes = [
+                'type' => isset($attributes['type']) ? $attributes['type'] : "application/javascript",
+                'src' => $this->pathForFile($file),
+            ];
+            if (!empty($attributes['async'])) {
+                $htmlAttributes['async'] = 'async';
+            }
+            if (!empty($attributes['defer'])) {
+                $htmlAttributes['defer'] = 'defer';
+            }
+            $jsRequirements .= HTML::createTag('script', $htmlAttributes);
             $jsRequirements .= "\n";
         }
 
         // Add all inline JavaScript *after* including external files they might rely on
-        foreach ($this->getCustomScripts() as $key => $script) {
-            // Build html attributes
-            $customHtmlAttributes = [];
-            if (isset($this->customScriptAttributes[$key])) {
-                foreach ($this->customScriptAttributes[$key] as $attrKey => $attrValue) {
-                    $customHtmlAttributes[$attrKey] = $attrValue;
-                }
-            }
+        foreach ($this->getCustomScripts() as $script) {
             $jsRequirements .= HTML::createTag(
                 'script',
-                $customHtmlAttributes,
+                [ 'type' => 'application/javascript' ],
                 "//<![CDATA[\n{$script}\n//]]>"
             );
             $jsRequirements .= "\n";
@@ -54,6 +66,9 @@ class ToastEnhancedBackend extends Requirements_Backend
                 'onload' => "this.onload=null;this.rel='stylesheet'",
                 ...$params,
             ];
+            if (!empty($params['media'])) {
+                $htmlAttributes['media'] = $params['media'];
+            }
             $requirements .= HTML::createTag('link', $htmlAttributes);
             $requirements .= "\n";
         }
@@ -81,4 +96,5 @@ class ToastEnhancedBackend extends Requirements_Backend
         }
         return $content;
     }
+
 }
