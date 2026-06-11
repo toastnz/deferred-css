@@ -1,6 +1,6 @@
 # see https://docs.silverstripe.org/en/developer_guides/configuration/configuration/
 ---
-Name: injectors
+Name: toastnz-injectors
 ---
 SilverStripe\Core\Injector\Injector:
   SilverStripe\View\Requirements_Backend:
