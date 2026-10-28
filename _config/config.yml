@@ -5,3 +5,7 @@ Name: toastnz-injectors
 SilverStripe\Core\Injector\Injector:
   SilverStripe\View\Requirements_Backend:
     class: Toast\Injectors\ToastEnhancedBackend
+  Psr\SimpleCache\CacheInterface.deferredCSS:
+    factory: SilverStripe\Core\Cache\CacheFactory
+    constructor:
+      namespace: 'deferredCSS'
